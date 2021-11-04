@@ -9,7 +9,9 @@ $ make deps
 
 ## Build
 ```bash
+$ make clean
 $ make vendor
+$ make copy-configs
 $ make build
 ```
 

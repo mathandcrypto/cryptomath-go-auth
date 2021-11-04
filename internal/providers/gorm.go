@@ -4,25 +4,23 @@ import (
 	"context"
 	"fmt"
 	databaseConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/database"
+	"github.com/mathandcrypto/cryptomath-gorm-logger"
+	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
-	"log"
-	"os"
+	gormLogger "gorm.io/gorm/logger"
 	"time"
 )
 
-func NewGORMProvider(ctx context.Context, config *databaseConfig.Config) (*gorm.DB, error) {
-	//	TODO: add custom gorm-logrus module
-	gormLogger := logger.New(log.New(os.Stdout, "\r\n", log.LstdFlags), logger.Config{
+func NewGORMProvider(ctx context.Context, l *logrus.Logger, config *databaseConfig.Config) (*gorm.DB, error) {
+	newGormLogger := logger.New(l, logger.Config{
 		SlowThreshold: time.Second,
-		LogLevel: logger.Silent,
-		IgnoreRecordNotFoundError:	true,
-		Colorful:	false,
+		LogLevel: gormLogger.Silent,
+		SkipErrRecordNotFound: true,
 	})
 
 	db, err := gorm.Open(postgres.Open(config.DSN()), &gorm.Config{
-		Logger: gormLogger,
+		Logger: newGormLogger,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect database: %w", err)

@@ -1,22 +1,25 @@
 BUILD_DIR=./out/bin
 BINARY_NAME=cryptomath-auth
 DOCKER_COMPOSE_FILE=docker-compose.yaml
-CONFIGS=app database redis auth
 
 #	Go section
 .PHONY: build
-build: clean
+build:
 	mkdir -p ${BUILD_DIR}
-	for config in ${CONFIGS} ; do \
-  		mkdir -p ${BUILD_DIR}/configs/$$config; \
-		cp ./configs/$$config/config.env ${BUILD_DIR}/configs/$$config/config.env; \
-	done
 	cd ${BUILD_DIR}
 	go build -mod vendor -o ${BUILD_DIR}/${BINARY_NAME} ./cmd/auth/main.go
 
 .PHONY: run
 run:
 	cd ${BUILD_DIR} && ./${BINARY_NAME}
+
+.PHONY: copy-configs
+copy-configs:
+	mkdir -p ${BUILD_DIR}
+	for path in `ls -d ./configs/* | sed 's:^\./::'` ; do \
+  		mkdir -p ${BUILD_DIR}/$$path; \
+		cp ./$$path/config.env ${BUILD_DIR}/$$path/config.env; \
+	done
 
 .PHONY: clean
 clean:

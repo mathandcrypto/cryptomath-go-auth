@@ -32,7 +32,7 @@ vendor:
 
 .PHONY: deps
 deps:
-	go mod download
+	go get ./...
 
 .PHONY: vet
 vet:

@@ -2,16 +2,17 @@ package databaseConfig
 
 import (
 	"fmt"
+	"github.com/go-playground/validator/v10"
 	configErrors "github.com/mathandcrypto/cryptomath-go-auth/internal/common/errors/config"
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	Host	string
-	Port	int16
-	User	string
-	Password	string
-	Database	string
+	Host	string	`mapstructure:"DATABASE_HOST" validate:"required"`
+	Port	int16	`mapstructure:"DATABASE_PORT" validate:"required"`
+	User	string	`mapstructure:"POSTGRES_USER" validate:"required"`
+	Password	string	`mapstructure:"POSTGRES_PASSWORD" validate:"required"`
+	Database	string	`mapstructure:"POSTGRES_DB" validate:"required"`
 }
 
 func (c *Config) DSN() string {
@@ -20,6 +21,10 @@ func (c *Config) DSN() string {
 
 func New() (*Config, error) {
 	dbViper := viper.New()
+	dbValidate := validator.New()
+
+	dbViper.SetDefault("DATABASE_HOST", "localhost")
+	dbViper.SetDefault("DATABASE_PORT", 5432)
 
 	dbViper.AddConfigPath("configs/database")
 	dbViper.SetConfigName("config")
@@ -30,41 +35,14 @@ func New() (*Config, error) {
 		return nil, &configErrors.ReadConfigError{ConfigName: "database", ViperErr: err}
 	}
 
-	//	Load database host
-	dbHost := dbViper.GetString("DATABASE_HOST")
-	if dbHost == "" {
-		dbHost = "localhost"
+	var dbConfig Config
+	if err := dbViper.Unmarshal(&dbConfig); err != nil {
+		return nil, &configErrors.UnmarshalError{ConfigName: "database", ViperErr: err}
 	}
 
-	//	Load database port
-	dbPort := dbViper.GetInt("DATABASE_PORT")
-	if dbPort == 0 {
-		dbPort = 5432
+	if err := dbValidate.Struct(dbConfig); err != nil {
+		return nil, &configErrors.ValidationError{ConfigName: "database", ValidateErr: err}
 	}
 
-	//	Load database user
-	dbUser := dbViper.GetString("POSTGRES_USER")
-	if dbUser == "" {
-		return nil, &configErrors.EmptyKeyError{Key: "POSTGRES_USER"}
-	}
-
-	//	Load database password
-	dbPassword := dbViper.GetString("POSTGRES_PASSWORD")
-	if dbPassword == "" {
-		return nil, &configErrors.EmptyKeyError{Key: "POSTGRES_PASSWORD"}
-	}
-
-	//	Load database name
-	dbName := dbViper.GetString("POSTGRES_DB")
-	if dbName == "" {
-		return nil, &configErrors.EmptyKeyError{Key: "POSTGRES_DB"}
-	}
-
-	return &Config{
-		Host: dbHost,
-		Port: int16(dbPort),
-		User: dbUser,
-		Password: dbPassword,
-		Database: dbName,
-	}, nil
+	return &dbConfig, nil
 }

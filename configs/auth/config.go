@@ -7,14 +7,16 @@ import (
 )
 
 type Config struct {
-	AccessSessionMaxAge int32	`validate:"gte=1,lte=60"`
-	RefreshSessionMaxAge int32	`validate:"gte=1,lte=30"`
-	MaxRefreshSessions	int64	`validate:"gte=1,lte=10"`
+	AccessSessionMaxAge int32	`mapstructure:"ACCESS_SESSION_MAX_AGE" validate:"required,gte=1,lte=60"`
+	RefreshSessionMaxAge int32	`mapstructure:"REFRESH_SESSION_MAX_AGE" validate:"required,gte=1,lte=30"`
+	MaxRefreshSessions	int64	`mapstructure:"MAX_REFRESH_SESSIONS" validate:"required,gte=1,lte=10"`
 }
 
 func New() (*Config, error) {
 	authViper := viper.New()
 	authValidate := validator.New()
+
+	authViper.SetDefault("MAX_REFRESH_SESSIONS", 5)
 
 	authViper.AddConfigPath("configs/auth")
 	authViper.SetConfigName("config")
@@ -25,33 +27,14 @@ func New() (*Config, error) {
 		return nil, &configErrors.ReadConfigError{ConfigName: "auth", ViperErr: err}
 	}
 
-	//	Load auth access session max age
-	authAccessSessionMaxAge := authViper.GetInt32("ACCESS_SESSION_MAX_AGE")
-	if authAccessSessionMaxAge == 0 {
-		return nil, &configErrors.EmptyKeyError{Key: "ACCESS_SESSION_MAX_AGE"}
-	}
-
-	//	Load auth refresh session max age
-	authRefreshSessionMaxAge := authViper.GetInt32("REFRESH_SESSION_MAX_AGE")
-	if authRefreshSessionMaxAge == 0 {
-		return nil, &configErrors.EmptyKeyError{Key: "REFRESH_SESSION_MAX_AGE"}
-	}
-
-	//	Load max refresh sessions
-	authMaxRefreshSessions := authViper.GetInt64("MAX_REFRESH_SESSIONS")
-	if authMaxRefreshSessions == 0 {
-		authMaxRefreshSessions = 5
-	}
-
-	authConfig := &Config{
-		AccessSessionMaxAge: authAccessSessionMaxAge,
-		RefreshSessionMaxAge: authRefreshSessionMaxAge,
-		MaxRefreshSessions: authMaxRefreshSessions,
+	var authConfig Config
+	if err := authViper.Unmarshal(&authConfig); err != nil {
+		return nil, &configErrors.UnmarshalError{ConfigName: "auth", ViperErr: err}
 	}
 
 	if err := authValidate.Struct(authConfig); err != nil {
 		return nil, &configErrors.ValidationError{ConfigName: "auth", ValidateErr: err}
 	}
 
-	return authConfig, nil
+	return &authConfig, nil
 }

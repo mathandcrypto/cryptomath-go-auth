@@ -50,7 +50,7 @@ func (s *AuthService) CreateRefreshSession(ctx context.Context, userId int32, ac
 	}
 
 	refreshSession := &authModels.RefreshSession{
-		RefreshSecret: refreshSecret,
+		RefreshSecret: string(refreshSecret),
 		UserId: userId,
 		IP: ip,
 		UserAgent: userAgent,
@@ -73,6 +73,23 @@ func (s *AuthService) ValidateAccessSession(ctx context.Context, userId int32, a
 	}
 
 	return accessSecret == redisAccessSecret, nil
+}
+
+func (s *AuthService) ValidateRefreshSession(ctx context.Context, userId int32, refreshSecret string) (bool, bool, error) {
+	type APIRefreshSession struct {
+		CreatedAt time.Time
+	}
+
+	var result APIRefreshSession
+	tx := s.db.WithContext(ctx).Model(&authModels.RefreshSession{}).First(&result).Where(&authModels.RefreshSession{
+		UserId: userId,
+		RefreshSecret: refreshSecret,
+	})
+	if tx.Error != nil {
+		return false, false, fmt.Errorf("failed to get user (%d) refresh session: %w", userId, tx.Error)
+	}
+
+	return false, false, nil
 }
 
 func (s *AuthService) DeleteAccessSession(ctx context.Context, userId int32) ([]byte, error) {

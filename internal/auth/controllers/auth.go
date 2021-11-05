@@ -47,6 +47,10 @@ func (s* AuthController) ValidateAccessSession(ctx context.Context, req *pbAuth.
 	}, nil
 }
 
+func (s *AuthController) ValidateRefreshSession(ctx context.Context, req *pbAuth.ValidateRefreshSessionRequest) (*pbAuth.ValidateRefreshSessionResponse, error) {
+	return nil, nil
+}
+
 func NewAuthController(rdb *redis.Client, db *gorm.DB) (*AuthController, error) {
 	authCfg, err := authConfig.New()
 

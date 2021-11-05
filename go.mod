@@ -11,7 +11,7 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mathandcrypto/cryptomath-go-proto v0.0.0-20211103123254-9054f12ef901
-	github.com/mathandcrypto/cryptomath-gorm-logger v0.0.0-20211103214849-8bbb4150694d
+	github.com/mathandcrypto/cryptomath-gorm-logger v0.1.0
 	github.com/mitchellh/mapstructure v1.4.2 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect

@@ -3,7 +3,7 @@ package authModels
 import "time"
 
 type RefreshSession struct {
-	RefreshSecret	[]byte	`gorm:"column:refresh_secret;primary_key"`
+	RefreshSecret	string	`gorm:"column:refresh_secret;primary_key"`
 	UserId	int32	`gorm:"column:user_id;index"`
 	IP	string	`gorm:"column:ip"`
 	UserAgent	string	`gorm:"column:user_agent"`

@@ -2,13 +2,14 @@ package redisConfig
 
 import (
 	"fmt"
+	"github.com/go-playground/validator/v10"
 	configErrors "github.com/mathandcrypto/cryptomath-go-auth/internal/common/errors/config"
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	Host	string
-	Port	int16
+	Host	string	`mapstructure:"REDIS_HOST" validate:"required"`
+	Port	int16	`mapstructure:"REDIS_PORT" validate:"required"`
 }
 
 func (c *Config) Address() string {
@@ -17,6 +18,10 @@ func (c *Config) Address() string {
 
 func New() (*Config, error) {
 	redisViper := viper.New()
+	redisValidate := validator.New()
+
+	redisViper.SetDefault("REDIS_HOST", "localhost")
+	redisViper.SetDefault("REDIS_PORT", 6379)
 
 	redisViper.AddConfigPath("configs/redis")
 	redisViper.SetConfigName("config")
@@ -27,20 +32,14 @@ func New() (*Config, error) {
 		return nil, &configErrors.ReadConfigError{ConfigName: "redis", ViperErr: err}
 	}
 
-	//	Load redis host
-	redisHost := redisViper.GetString("REDIS_HOST")
-	if redisHost == "" {
-		redisHost = "localhost"
+	var redisConfig Config
+	if err := redisViper.Unmarshal(&redisConfig); err != nil {
+		return nil, &configErrors.UnmarshalError{ConfigName: "redis", ViperErr: err}
 	}
 
-	//	Load redis port
-	redisPort := redisViper.GetInt("REDIS_PORT")
-	if redisPort == 0 {
-		redisPort = 6379
+	if err := redisValidate.Struct(redisConfig); err != nil {
+		return nil, &configErrors.ValidationError{ConfigName: "redis", ValidateErr: err}
 	}
 
-	return &Config{
-		Host: redisHost,
-		Port: int16(redisPort),
-	}, nil
+	return &redisConfig, nil
 }

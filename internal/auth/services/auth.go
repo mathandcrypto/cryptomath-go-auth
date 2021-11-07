@@ -6,6 +6,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	authConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/auth"
 	authModels "github.com/mathandcrypto/cryptomath-go-auth/internal/auth/models"
+	authTypes "github.com/mathandcrypto/cryptomath-go-auth/internal/auth/types"
 	"gorm.io/gorm"
 	"time"
 )
@@ -75,21 +76,25 @@ func (s *AuthService) ValidateAccessSession(ctx context.Context, userId int32, a
 	return accessSecret == redisAccessSecret, nil
 }
 
-func (s *AuthService) ValidateRefreshSession(ctx context.Context, userId int32, refreshSecret string) (bool, bool, error) {
-	type APIRefreshSession struct {
-		CreatedAt time.Time
-	}
-
-	var result APIRefreshSession
+func (s *AuthService) ValidateRefreshSession(ctx context.Context, userId int32, refreshSecret string) (bool, bool, *authTypes.RefreshSession, error) {
+	var result authTypes.RefreshSession
 	tx := s.db.WithContext(ctx).Model(&authModels.RefreshSession{}).First(&result).Where(&authModels.RefreshSession{
 		UserId: userId,
 		RefreshSecret: refreshSecret,
 	})
 	if tx.Error != nil {
-		return false, false, fmt.Errorf("failed to get user (%d) refresh session: %w", userId, tx.Error)
+		return false, false, nil, fmt.Errorf("failed to get user (%d) refresh session: %w", userId, tx.Error)
 	}
 
-	return false, false, nil
+	if tx.RowsAffected == 0 {
+		return false, false, nil, nil
+	}
+
+	if result.CreatedAt.Before(s.authCfg.RefreshSessionExpirationDate()) {
+		return true, true, nil, nil
+	}
+
+	return true, false, &result, nil
 }
 
 func (s *AuthService) DeleteAccessSession(ctx context.Context, userId int32) ([]byte, error) {

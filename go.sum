@@ -295,6 +295,8 @@ github.com/mathandcrypto/cryptomath-gorm-logger v0.0.0-20211103214849-8bbb415069
 github.com/mathandcrypto/cryptomath-gorm-logger v0.0.0-20211103214849-8bbb4150694d/go.mod h1:oNVV2wegKIqYSCe0RQVZeLsaKks5umGCt1agiSGEYvQ=
 github.com/mathandcrypto/cryptomath-gorm-logger v0.1.0 h1:wAL0jSVJhbpiGE/DyMX6oJen+iwxpUcxDADudNkzB0U=
 github.com/mathandcrypto/cryptomath-gorm-logger v0.1.0/go.mod h1:gH/i+eeq6OaIKP82W2zVa4WMyKDqSWbOAhx8sTAXlKA=
+github.com/mathandcrypto/cryptomath-gorm-logger v0.1.1 h1:1Uat7LSIAD2/O3RnHd2raMyfNS9bvw0hCiTTtU+qkcI=
+github.com/mathandcrypto/cryptomath-gorm-logger v0.1.1/go.mod h1:gH/i+eeq6OaIKP82W2zVa4WMyKDqSWbOAhx8sTAXlKA=
 github.com/mattn/go-colorable v0.0.9/go.mod h1:9vuHe8Xs5qXnSaW/c/ABM9alt+Vo+STaOChaDxuIBZU=
 github.com/mattn/go-colorable v0.1.1/go.mod h1:FuOcm+DKB9mbwrcAfNl7/TZVBZ6rcnceauSikq3lYCQ=
 github.com/mattn/go-colorable v0.1.4/go.mod h1:U0ppj6V5qS13XJ6of8GYAs25YV2eR4EVcfRqFIhoBtE=

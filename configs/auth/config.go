@@ -4,12 +4,20 @@ import (
 	"github.com/go-playground/validator/v10"
 	configErrors "github.com/mathandcrypto/cryptomath-go-auth/internal/common/errors/config"
 	"github.com/spf13/viper"
+	"time"
 )
 
 type Config struct {
 	AccessSessionMaxAge int32	`mapstructure:"ACCESS_SESSION_MAX_AGE" validate:"required,gte=1,lte=60"`
 	RefreshSessionMaxAge int32	`mapstructure:"REFRESH_SESSION_MAX_AGE" validate:"required,gte=1,lte=30"`
 	MaxRefreshSessions	int64	`mapstructure:"MAX_REFRESH_SESSIONS" validate:"required,gte=1,lte=10"`
+}
+
+func (c *Config) RefreshSessionExpirationDate() time.Time {
+	now := time.Now()
+	now.Add((-24) * time.Duration(c.RefreshSessionMaxAge) * time.Hour)
+
+	return now
 }
 
 func New() (*Config, error) {

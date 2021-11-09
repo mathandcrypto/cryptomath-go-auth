@@ -10,7 +10,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
-	github.com/mathandcrypto/cryptomath-go-proto v0.0.0-20211103123254-9054f12ef901
+	github.com/mathandcrypto/cryptomath-go-proto v0.0.0-20211109140600-2daa67037c30
 	github.com/mathandcrypto/cryptomath-gorm-logger v0.1.1
 	github.com/mitchellh/mapstructure v1.4.2 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
@@ -28,7 +28,7 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/genproto v0.0.0-20211029142109-e255c875f7c7 // indirect
 	google.golang.org/grpc v1.41.0
-	google.golang.org/protobuf v1.27.1 // indirect
+	google.golang.org/protobuf v1.27.1
 	gopkg.in/ini.v1 v1.63.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gorm.io/driver/postgres v1.2.1

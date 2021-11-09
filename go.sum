@@ -291,6 +291,8 @@ github.com/mathandcrypto/cryptomath-go-proto v0.0.0-20211103105613-78d98a0c7138 
 github.com/mathandcrypto/cryptomath-go-proto v0.0.0-20211103105613-78d98a0c7138/go.mod h1:CsoRHpO8sRwrQy/3dsL1yWYL46yHdck2JIybOVGXx6g=
 github.com/mathandcrypto/cryptomath-go-proto v0.0.0-20211103123254-9054f12ef901 h1:xs84vOzeFdLdHGp1dHM9e9RueQ1x2GS26pNKwB2doKo=
 github.com/mathandcrypto/cryptomath-go-proto v0.0.0-20211103123254-9054f12ef901/go.mod h1:CsoRHpO8sRwrQy/3dsL1yWYL46yHdck2JIybOVGXx6g=
+github.com/mathandcrypto/cryptomath-go-proto v0.0.0-20211109140600-2daa67037c30 h1:WDnh9I/DEXIz7fT7n87hhfFTGLXvqXNyGMOrFuMoQtw=
+github.com/mathandcrypto/cryptomath-go-proto v0.0.0-20211109140600-2daa67037c30/go.mod h1:CsoRHpO8sRwrQy/3dsL1yWYL46yHdck2JIybOVGXx6g=
 github.com/mathandcrypto/cryptomath-gorm-logger v0.0.0-20211103214849-8bbb4150694d h1:BgJEF7EPJDxMPEke0GVBsLH2z1TQAz/Idkyd5BpShYo=
 github.com/mathandcrypto/cryptomath-gorm-logger v0.0.0-20211103214849-8bbb4150694d/go.mod h1:oNVV2wegKIqYSCe0RQVZeLsaKks5umGCt1agiSGEYvQ=
 github.com/mathandcrypto/cryptomath-gorm-logger v0.1.0 h1:wAL0jSVJhbpiGE/DyMX6oJen+iwxpUcxDADudNkzB0U=

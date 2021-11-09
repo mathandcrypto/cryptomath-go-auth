@@ -6,7 +6,6 @@ import (
 	"github.com/go-redis/redis/v8"
 	authConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/auth"
 	authModels "github.com/mathandcrypto/cryptomath-go-auth/internal/auth/models"
-	authTypes "github.com/mathandcrypto/cryptomath-go-auth/internal/auth/types"
 	"gorm.io/gorm"
 	"time"
 )
@@ -76,34 +75,64 @@ func (s *AuthService) ValidateAccessSession(ctx context.Context, userId int32, a
 	return accessSecret == redisAccessSecret, nil
 }
 
-func (s *AuthService) ValidateRefreshSession(ctx context.Context, userId int32, refreshSecret string) (bool, bool, *authTypes.RefreshSession, error) {
-	var result authTypes.RefreshSession
-	tx := s.db.WithContext(ctx).Model(&authModels.RefreshSession{}).First(&result).Where(&authModels.RefreshSession{
+func (s *AuthService) FindRefreshSession(ctx context.Context, userId int32, refreshSecret string) (*authModels.RefreshSession, error) {
+	var result authModels.RefreshSession
+	tx := s.db.WithContext(ctx).Take(&result).Where(&authModels.RefreshSession{
 		UserId: userId,
 		RefreshSecret: refreshSecret,
 	})
 	if tx.Error != nil {
-		return false, false, nil, fmt.Errorf("failed to get user (%d) refresh session: %w", userId, tx.Error)
+		return nil, fmt.Errorf("failed to find user (%d) refresh session: %w", userId, tx.Error)
 	}
 
 	if tx.RowsAffected == 0 {
-		return false, false, nil, nil
+		return nil, nil
 	}
 
-	if result.CreatedAt.Before(s.authCfg.RefreshSessionExpirationDate()) {
-		return true, true, nil, nil
-	}
+	return &result, nil
+}
 
-	return true, false, &result, nil
+func (s *AuthService) CheckRefreshSessionExpiration(refreshSession *authModels.RefreshSession) bool {
+	return refreshSession.CreatedAt.Before(s.authCfg.RefreshSessionExpirationDate())
 }
 
 func (s *AuthService) DeleteAccessSession(ctx context.Context, userId int32) ([]byte, error) {
 	val, err := s.rdb.GetDel(ctx, string(userId)).Result()
 	if err != nil {
-		return nil, fmt.Errorf("failed to delete access session: %w", err)
+		return nil, fmt.Errorf("failed to delete user (%d) access session: %w", userId, err)
 	}
 
 	return []byte(val), nil
+}
+
+func (s *AuthService) DeleteRefreshSession(ctx context.Context, userId int32, refreshSecret string) (*authModels.RefreshSession, error) {
+	refreshSession, err := s.FindRefreshSession(ctx, userId, refreshSecret)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find user (%d) refresh session to deletion: %w", userId, err)
+	}
+
+	tx := s.db.Delete(refreshSession)
+	if tx .Error != nil {
+		return nil, fmt.Errorf("failed to delete user (%d) refresh session: %w", userId, err)
+	}
+
+	return refreshSession, nil
+}
+
+func (s *AuthService) DeleteAllUserSessions(ctx context.Context, userId int32) error {
+	_, err := s.DeleteAccessSession(ctx, userId)
+	if err != nil {
+		return err
+	}
+
+	tx := s.db.Delete(&authModels.RefreshSession{
+		UserId: userId,
+	})
+	if tx.Error != nil {
+		return fmt.Errorf("failed to delete all user (%d) refresh sessions: %w", userId, tx.Error)
+	}
+
+	return nil
 }
 
 func NewAuthService(rdb *redis.Client, db *gorm.DB, authCfg *authConfig.Config) *AuthService {

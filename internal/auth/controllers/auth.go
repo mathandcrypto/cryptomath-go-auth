@@ -10,6 +10,7 @@ import (
 	pbAuth "github.com/mathandcrypto/cryptomath-go-proto/auth"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"gorm.io/gorm"
 )
 
@@ -50,21 +51,65 @@ func (s* AuthController) ValidateAccessSession(ctx context.Context, req *pbAuth.
 }
 
 func (s *AuthController) ValidateRefreshSession(ctx context.Context, req *pbAuth.ValidateRefreshSessionRequest) (*pbAuth.ValidateRefreshSessionResponse, error) {
-	isSessionExists, isSessionExpired, refreshSession, err := s.authService.ValidateRefreshSession(ctx, req.UserId, req.RefreshSecret)
+	refreshSession, err := s.authService.FindRefreshSession(ctx, req.UserId, req.RefreshSecret)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, fmt.Sprintf("failed to validate refresh session: %v", err))
 	}
 
+	if refreshSession == nil {
+		return &pbAuth.ValidateRefreshSessionResponse{
+			IsSessionExpired: false,
+			RefreshSession: nil,
+		}, nil
+	}
+
+	isSessionExpired := s.authService.CheckRefreshSessionExpiration(refreshSession)
+
 	return &pbAuth.ValidateRefreshSessionResponse{
-		IsSessionExists: isSessionExists,
 		IsSessionExpired: isSessionExpired,
 		RefreshSession: s.refreshSessionSerializer.Serialize(refreshSession),
 	}, nil
 }
 
+func (s *AuthController) DeleteAccessSession(ctx context.Context, req *pbAuth.DeleteAccessSessionRequest) (*pbAuth.DeleteAccessSessionResponse, error) {
+	accessSecret, err := s.authService.DeleteAccessSession(ctx, req.UserId)
+
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, fmt.Sprintf("failed to delete access session: %v", err))
+	}
+
+	isSessionDeleted := false
+	if len(accessSecret) > 0 {
+		isSessionDeleted = true
+	}
+
+	return &pbAuth.DeleteAccessSessionResponse{
+		IsSessionDeleted: isSessionDeleted,
+	}, nil
+}
+
+func (s *AuthController) DeleteRefreshSession(ctx context.Context, req *pbAuth.DeleteRefreshSessionRequest) (*pbAuth.DeleteRefreshSessionResponse, error) {
+	refreshSession, err := s.authService.DeleteRefreshSession(ctx, req.UserId, req.RefreshSecret)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, fmt.Sprintf("failed to delete refresh session: %v", err))
+	}
+
+	return &pbAuth.DeleteRefreshSessionResponse{
+		RefreshSession: s.refreshSessionSerializer.Serialize(refreshSession),
+	}, nil
+}
+
+func (s *AuthController) DeleteAllUserSessions(ctx context.Context, req *pbAuth.DeleteAllUserSessionsRequest) (*emptypb.Empty, error) {
+	err := s.authService.DeleteAllUserSessions(ctx, req.UserId)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, fmt.Sprintf("failed to delete all user sessions: %v", err))
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
 func NewAuthController(rdb *redis.Client, db *gorm.DB) (*AuthController, error) {
 	authCfg, err := authConfig.New()
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to load auth config: %w", err)
 	}

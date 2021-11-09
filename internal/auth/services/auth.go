@@ -111,7 +111,7 @@ func (s *AuthService) DeleteRefreshSession(ctx context.Context, userId int32, re
 		return nil, fmt.Errorf("failed to find user (%d) refresh session to deletion: %w", userId, err)
 	}
 
-	tx := s.db.Delete(refreshSession)
+	tx := s.db.WithContext(ctx).Delete(refreshSession)
 	if tx .Error != nil {
 		return nil, fmt.Errorf("failed to delete user (%d) refresh session: %w", userId, err)
 	}
@@ -125,7 +125,7 @@ func (s *AuthService) DeleteAllUserSessions(ctx context.Context, userId int32) e
 		return err
 	}
 
-	tx := s.db.Delete(&authModels.RefreshSession{
+	tx := s.db.WithContext(ctx).Delete(&authModels.RefreshSession{
 		UserId: userId,
 	})
 	if tx.Error != nil {

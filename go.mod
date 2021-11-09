@@ -10,7 +10,6 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
-	github.com/mathandcrypto/cryptomath-go-proto v0.0.0-20211109140600-2daa67037c30
 	github.com/mathandcrypto/cryptomath-gorm-logger v0.1.1
 	github.com/mitchellh/mapstructure v1.4.2 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
@@ -51,4 +50,7 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.2 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
+	github.com/mathandcrypto/cryptomath-go-proto v0.0.0-20211109142007-c30ba28c946e
 )
+
+require github.com/robfig/cron/v3 v3.0.1

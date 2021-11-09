@@ -8,6 +8,7 @@ import (
 	redisConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/redis"
 	"github.com/mathandcrypto/cryptomath-go-auth/internal/auth"
 	"github.com/mathandcrypto/cryptomath-go-auth/internal/providers"
+	"github.com/robfig/cron/v3"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"net"
@@ -54,6 +55,9 @@ func main() {
 		l.WithError(err).Fatal("failed to init redis provider")
 	}
 
+	//	Init cron jobs
+	cr := cron.New()
+
 	//	Init app
 	appCfg, err := appConfig.New()
 	if err != nil {
@@ -68,9 +72,11 @@ func main() {
 	var grpcOptions []grpc.ServerOption
 	grpcServer := grpc.NewServer(grpcOptions...)
 
-	if err = auth.Init(grpcServer, rdb, db); err != nil {
+	if err = auth.Init(ctx, cr, grpcServer, rdb, db, l); err != nil {
 		l.WithError(err).Fatal("failed to init auth module")
 	}
+
+	cr.Start()
 
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan,
@@ -92,6 +98,7 @@ func main() {
 		cancel()
 		grpcServer.GracefulStop()
 		rdb.FlushDB(ctx)
+		cr.Stop()
 	}()
 
 	l.Info(fmt.Sprintf("starting grpc server on: %s", appCfg.Address()))

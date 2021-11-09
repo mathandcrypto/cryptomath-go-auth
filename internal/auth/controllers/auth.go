@@ -108,14 +108,9 @@ func (s *AuthController) DeleteAllUserSessions(ctx context.Context, req *pbAuth.
 	return &emptypb.Empty{}, nil
 }
 
-func NewAuthController(rdb *redis.Client, db *gorm.DB) (*AuthController, error) {
-	authCfg, err := authConfig.New()
-	if err != nil {
-		return nil, fmt.Errorf("failed to load auth config: %w", err)
-	}
-
+func NewAuthController(rdb *redis.Client, db *gorm.DB, authCfg *authConfig.Config) *AuthController {
 	return &AuthController{
 		authService: authServices.NewAuthService(rdb, db, authCfg),
 		refreshSessionSerializer: authSerializers.NewRefreshSessionSerializer(),
-	}, nil
+	}
 }

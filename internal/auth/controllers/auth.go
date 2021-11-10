@@ -3,24 +3,27 @@ package authControllers
 import (
 	"context"
 	"fmt"
+
 	"github.com/go-redis/redis/v8"
-	authConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/auth"
-	authSerializers "github.com/mathandcrypto/cryptomath-go-auth/internal/auth/serializers"
-	authServices "github.com/mathandcrypto/cryptomath-go-auth/internal/auth/services"
 	pbAuth "github.com/mathandcrypto/cryptomath-go-proto/auth"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"gorm.io/gorm"
+
+	authConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/auth"
+	authSerializers "github.com/mathandcrypto/cryptomath-go-auth/internal/auth/serializers"
+	authServices "github.com/mathandcrypto/cryptomath-go-auth/internal/auth/services"
 )
 
 type AuthController struct {
 	pbAuth.AuthServiceServer
-	authService *authServices.AuthService
+	authService              *authServices.AuthService
 	refreshSessionSerializer *authSerializers.RefreshSessionSerializer
 }
 
-func (s *AuthController) CreateAccessSession(ctx context.Context, req *pbAuth.CreateAccessSessionRequest) (*pbAuth.CreateAccessSessionResponse, error) {
+func (s *AuthController) CreateAccessSession(ctx context.Context,
+	req *pbAuth.CreateAccessSessionRequest) (*pbAuth.CreateAccessSessionResponse, error) {
 	_, _ = s.authService.DeleteAccessSession(ctx, req.UserId)
 
 	accessSecret, err := s.authService.CreateAccessSession(ctx, req.UserId)
@@ -34,12 +37,13 @@ func (s *AuthController) CreateAccessSession(ctx context.Context, req *pbAuth.Cr
 	}
 
 	return &pbAuth.CreateAccessSessionResponse{
-		AccessSecret: string(accessSecret),
+		AccessSecret:  string(accessSecret),
 		RefreshSecret: string(refreshSecret),
 	}, nil
 }
 
-func (s* AuthController) ValidateAccessSession(ctx context.Context, req *pbAuth.ValidateAccessSessionRequest) (*pbAuth.ValidateAccessSessionResponse, error) {
+func (s *AuthController) ValidateAccessSession(ctx context.Context,
+	req *pbAuth.ValidateAccessSessionRequest) (*pbAuth.ValidateAccessSessionResponse, error) {
 	isSessionExists, err := s.authService.ValidateAccessSession(ctx, req.UserId, req.AccessSecret)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, fmt.Sprintf("failed to validate access session: %v", err))
@@ -50,7 +54,8 @@ func (s* AuthController) ValidateAccessSession(ctx context.Context, req *pbAuth.
 	}, nil
 }
 
-func (s *AuthController) ValidateRefreshSession(ctx context.Context, req *pbAuth.ValidateRefreshSessionRequest) (*pbAuth.ValidateRefreshSessionResponse, error) {
+func (s *AuthController) ValidateRefreshSession(ctx context.Context,
+	req *pbAuth.ValidateRefreshSessionRequest) (*pbAuth.ValidateRefreshSessionResponse, error) {
 	refreshSession, err := s.authService.FindRefreshSession(ctx, req.UserId, req.RefreshSecret)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, fmt.Sprintf("failed to validate refresh session: %v", err))
@@ -59,7 +64,7 @@ func (s *AuthController) ValidateRefreshSession(ctx context.Context, req *pbAuth
 	if refreshSession == nil {
 		return &pbAuth.ValidateRefreshSessionResponse{
 			IsSessionExpired: false,
-			RefreshSession: nil,
+			RefreshSession:   nil,
 		}, nil
 	}
 
@@ -67,11 +72,12 @@ func (s *AuthController) ValidateRefreshSession(ctx context.Context, req *pbAuth
 
 	return &pbAuth.ValidateRefreshSessionResponse{
 		IsSessionExpired: isSessionExpired,
-		RefreshSession: s.refreshSessionSerializer.Serialize(refreshSession),
+		RefreshSession:   s.refreshSessionSerializer.Serialize(refreshSession),
 	}, nil
 }
 
-func (s *AuthController) DeleteAccessSession(ctx context.Context, req *pbAuth.DeleteAccessSessionRequest) (*pbAuth.DeleteAccessSessionResponse, error) {
+func (s *AuthController) DeleteAccessSession(ctx context.Context,
+	req *pbAuth.DeleteAccessSessionRequest) (*pbAuth.DeleteAccessSessionResponse, error) {
 	accessSecret, err := s.authService.DeleteAccessSession(ctx, req.UserId)
 
 	if err != nil {
@@ -88,7 +94,8 @@ func (s *AuthController) DeleteAccessSession(ctx context.Context, req *pbAuth.De
 	}, nil
 }
 
-func (s *AuthController) DeleteRefreshSession(ctx context.Context, req *pbAuth.DeleteRefreshSessionRequest) (*pbAuth.DeleteRefreshSessionResponse, error) {
+func (s *AuthController) DeleteRefreshSession(ctx context.Context,
+	req *pbAuth.DeleteRefreshSessionRequest) (*pbAuth.DeleteRefreshSessionResponse, error) {
 	refreshSession, err := s.authService.DeleteRefreshSession(ctx, req.UserId, req.RefreshSecret)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, fmt.Sprintf("failed to delete refresh session: %v", err))
@@ -110,7 +117,7 @@ func (s *AuthController) DeleteAllUserSessions(ctx context.Context, req *pbAuth.
 
 func NewAuthController(rdb *redis.Client, db *gorm.DB, authCfg *authConfig.Config) *AuthController {
 	return &AuthController{
-		authService: authServices.NewAuthService(rdb, db, authCfg),
+		authService:              authServices.NewAuthService(rdb, db, authCfg),
 		refreshSessionSerializer: authSerializers.NewRefreshSessionSerializer(),
 	}
 }

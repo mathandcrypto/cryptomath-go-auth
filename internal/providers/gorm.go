@@ -3,18 +3,20 @@ package providers
 import (
 	"context"
 	"fmt"
-	databaseConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/database"
-	"github.com/mathandcrypto/cryptomath-gorm-logger"
+	"time"
+
+	logger "github.com/mathandcrypto/cryptomath-gorm-logger"
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"time"
+
+	databaseConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/database"
 )
 
 func NewGORMProvider(ctx context.Context, l *logrus.Logger, config *databaseConfig.Config) (*gorm.DB, error) {
 	newLogger := logger.New(l, logger.Config{
-		SlowThreshold: time.Second,
-		SourceField: "source",
+		SlowThreshold:         time.Second,
+		SourceField:           "source",
 		SkipErrRecordNotFound: true,
 	})
 

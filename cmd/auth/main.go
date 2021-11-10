@@ -3,19 +3,21 @@ package main
 import (
 	"context"
 	"fmt"
-	appConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/app"
-	databaseConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/database"
-	redisConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/redis"
-	"github.com/mathandcrypto/cryptomath-go-auth/internal/auth"
-	"github.com/mathandcrypto/cryptomath-go-auth/internal/providers"
-	"github.com/robfig/cron/v3"
-	"github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
 	"net"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
+
+	"github.com/robfig/cron/v3"
+	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+
+	appConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/app"
+	databaseConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/database"
+	redisConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/redis"
+	"github.com/mathandcrypto/cryptomath-go-auth/internal/auth"
+	"github.com/mathandcrypto/cryptomath-go-auth/internal/providers"
 )
 
 func setupLogger(ctx context.Context) *logrus.Logger {

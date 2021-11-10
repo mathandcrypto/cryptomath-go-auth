@@ -3,8 +3,8 @@ package configErrors
 import "fmt"
 
 type UnmarshalError struct {
-	ConfigName	string
-	ViperErr	error
+	ConfigName string
+	ViperErr   error
 }
 
 func (e *UnmarshalError) Error() string {

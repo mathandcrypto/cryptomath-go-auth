@@ -40,7 +40,11 @@ vet:
 
 .PHONY: lint
 lint:
-	golangci-lint run	--enable-all
+	golangci-lint run
+
+.PHONY: lint-fix
+lint-fix:
+	golangci-lint run --fix
 
 #	Docker section
 .PHONY:	docker-compose-start-service

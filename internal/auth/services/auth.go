@@ -3,17 +3,19 @@ package authServices
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/go-redis/redis/v8"
+	"gorm.io/gorm"
+
 	authConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/auth"
 	authModels "github.com/mathandcrypto/cryptomath-go-auth/internal/auth/models"
-	"gorm.io/gorm"
-	"time"
 )
 
 type AuthService struct {
-	rdb *redis.Client
-	db *gorm.DB
-	authCfg *authConfig.Config
+	rdb               *redis.Client
+	db                *gorm.DB
+	authCfg           *authConfig.Config
 	encryptionService *EncryptionService
 }
 
@@ -23,21 +25,23 @@ func (s *AuthService) CreateAccessSession(ctx context.Context, userId int32) ([]
 		return nil, fmt.Errorf("failed to generate user (%d) access secret: %w", userId, err)
 	}
 
-	if err = s.rdb.Set(ctx, string(userId), accessSecret, time.Duration(s.authCfg.AccessSessionMaxAge) * time.Hour).Err(); err != nil {
+	if err = s.rdb.Set(ctx, string(userId), accessSecret, time.Duration(s.authCfg.AccessSessionMaxAge)*time.Hour).Err(); err != nil {
 		return nil, fmt.Errorf("failed to create user (%d) new access session: %w", userId, err)
 	}
 
 	return accessSecret, nil
 }
 
-func (s *AuthService) CreateRefreshSession(ctx context.Context, userId int32, accessSecret []byte, ip string, userAgent string) ([]byte, error) {
+func (s *AuthService) CreateRefreshSession(ctx context.Context,
+	userId int32, accessSecret []byte, ip string, userAgent string) ([]byte, error) {
 	refreshSecret, err := s.encryptionService.GenerateSecret(userId, accessSecret)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate user (%d) refresh secret: %w", userId, err)
 	}
 
 	var refreshSessionsCount int64
-	tx := s.db.WithContext(ctx).Model(&authModels.RefreshSession{}).Where(&authModels.RefreshSession{UserId: userId}).Count(&refreshSessionsCount)
+	tx := s.db.WithContext(ctx).
+		Model(&authModels.RefreshSession{}).Where(&authModels.RefreshSession{UserId: userId}).Count(&refreshSessionsCount)
 	if tx.Error != nil {
 		return nil, fmt.Errorf("failed to count user (%d) refresh sessions: %w", userId, tx.Error)
 	}
@@ -51,9 +55,9 @@ func (s *AuthService) CreateRefreshSession(ctx context.Context, userId int32, ac
 
 	refreshSession := &authModels.RefreshSession{
 		RefreshSecret: string(refreshSecret),
-		UserId: userId,
-		IP: ip,
-		UserAgent: userAgent,
+		UserId:        userId,
+		IP:            ip,
+		UserAgent:     userAgent,
 	}
 
 	tx = s.db.WithContext(ctx).Create(&refreshSession)
@@ -78,7 +82,7 @@ func (s *AuthService) ValidateAccessSession(ctx context.Context, userId int32, a
 func (s *AuthService) FindRefreshSession(ctx context.Context, userId int32, refreshSecret string) (*authModels.RefreshSession, error) {
 	var result authModels.RefreshSession
 	tx := s.db.WithContext(ctx).Take(&result).Where(&authModels.RefreshSession{
-		UserId: userId,
+		UserId:        userId,
 		RefreshSecret: refreshSecret,
 	})
 	if tx.Error != nil {
@@ -112,7 +116,7 @@ func (s *AuthService) DeleteRefreshSession(ctx context.Context, userId int32, re
 	}
 
 	tx := s.db.WithContext(ctx).Delete(refreshSession)
-	if tx .Error != nil {
+	if tx.Error != nil {
 		return nil, fmt.Errorf("failed to delete user (%d) refresh session: %w", userId, err)
 	}
 
@@ -137,9 +141,9 @@ func (s *AuthService) DeleteAllUserSessions(ctx context.Context, userId int32) e
 
 func NewAuthService(rdb *redis.Client, db *gorm.DB, authCfg *authConfig.Config) *AuthService {
 	return &AuthService{
-		rdb: rdb,
-		db: db,
-		authCfg: authCfg,
+		rdb:               rdb,
+		db:                db,
+		authCfg:           authCfg,
 		encryptionService: NewEncryptionService(),
 	}
 }

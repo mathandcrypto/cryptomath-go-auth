@@ -1,10 +1,12 @@
 package authConfig
 
 import (
-	"github.com/go-playground/validator/v10"
-	configErrors "github.com/mathandcrypto/cryptomath-go-auth/internal/common/errors/config"
-	"github.com/spf13/viper"
 	"time"
+
+	"github.com/go-playground/validator/v10"
+	"github.com/spf13/viper"
+
+	configErrors "github.com/mathandcrypto/cryptomath-go-auth/internal/common/errors/config"
 )
 
 type Config struct {

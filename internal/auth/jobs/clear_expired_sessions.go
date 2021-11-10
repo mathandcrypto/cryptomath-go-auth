@@ -3,19 +3,21 @@ package authJobs
 import (
 	"context"
 	"fmt"
-	authConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/auth"
-	authModels "github.com/mathandcrypto/cryptomath-go-auth/internal/auth/models"
+
 	"github.com/robfig/cron/v3"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
+
+	authConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/auth"
+	authModels "github.com/mathandcrypto/cryptomath-go-auth/internal/auth/models"
 )
 
 type ClearExpiredSessions struct {
 	cron.Job
-	ctx context.Context
+	ctx     context.Context
 	authCfg *authConfig.Config
-	db *gorm.DB
-	l *logrus.Logger
+	db      *gorm.DB
+	l       *logrus.Logger
 }
 
 func (j *ClearExpiredSessions) Run() {
@@ -28,12 +30,13 @@ func (j *ClearExpiredSessions) Run() {
 	j.l.Infof("deleted %d expired refresh sessions", tx.RowsAffected)
 }
 
-func NewClearExpiredSessionsJob(ctx context.Context, cr *cron.Cron, authCfg *authConfig.Config, db *gorm.DB, l *logrus.Logger) (cron.EntryID, error) {
+func NewClearExpiredSessionsJob(ctx context.Context, cr *cron.Cron,
+	authCfg *authConfig.Config, db *gorm.DB, l *logrus.Logger) (cron.EntryID, error) {
 	job := ClearExpiredSessions{
-		ctx: ctx,
+		ctx:     ctx,
 		authCfg: authCfg,
-		db: db,
-		l: l,
+		db:      db,
+		l:       l,
 	}
 
 	jobId, err := cr.AddJob("0 * * * *", &job)

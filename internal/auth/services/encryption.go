@@ -2,12 +2,13 @@ package authServices
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
-	"time"
 )
 
-type EncryptionService struct {}
+type EncryptionService struct{}
 
 func (s *EncryptionService) GenerateSecret(userId int32, extra []byte) ([]byte, error) {
 	uuidV4, err := uuid.NewRandom()

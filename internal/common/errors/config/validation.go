@@ -3,8 +3,8 @@ package configErrors
 import "fmt"
 
 type ValidationError struct {
-	ConfigName	string
-	ValidateErr	error
+	ConfigName  string
+	ValidateErr error
 }
 
 func (e *ValidationError) Error() string {

@@ -19,7 +19,3 @@ func (s *RefreshSessionSerializer) Serialize(refreshSession *authModels.RefreshS
 		CreatedAt: timestamppb.New(refreshSession.CreatedAt),
 	}
 }
-
-func NewRefreshSessionSerializer() *RefreshSessionSerializer {
-	return &RefreshSessionSerializer{}
-}

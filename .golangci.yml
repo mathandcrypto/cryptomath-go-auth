@@ -1,9 +1,9 @@
 run:
   timeout: 2m
   skip-dirs:
-    - configs
     - db
     - scripts
+    - out
   skip-dirs-use-default: true
   modules-download-mode: vendor
   allow-parallel-runners: true

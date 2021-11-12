@@ -144,6 +144,6 @@ func NewAuthService(rdb *redis.Client, db *gorm.DB, authCfg *authConfig.Config) 
 		rdb:               rdb,
 		db:                db,
 		authCfg:           authCfg,
-		encryptionService: NewEncryptionService(),
+		encryptionService: &EncryptionService{},
 	}
 }

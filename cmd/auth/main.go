@@ -58,7 +58,8 @@ func main() {
 	}
 
 	//	Init cron jobs
-	cr := cron.New()
+	crLog := l.WithField("module", "cron")
+	cr := cron.New(cron.WithLogger(cron.VerbosePrintfLogger(crLog)))
 
 	//	Init app
 	appCfg, err := appConfig.New()

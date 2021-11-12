@@ -26,7 +26,3 @@ func (s *EncryptionService) GenerateSecret(userId int32, extra []byte) ([]byte, 
 
 	return hash, nil
 }
-
-func NewEncryptionService() *EncryptionService {
-	return &EncryptionService{}
-}

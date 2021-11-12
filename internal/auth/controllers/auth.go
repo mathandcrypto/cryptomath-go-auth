@@ -118,6 +118,6 @@ func (s *AuthController) DeleteAllUserSessions(ctx context.Context, req *pbAuth.
 func NewAuthController(rdb *redis.Client, db *gorm.DB, authCfg *authConfig.Config) *AuthController {
 	return &AuthController{
 		authService:              authServices.NewAuthService(rdb, db, authCfg),
-		refreshSessionSerializer: authSerializers.NewRefreshSessionSerializer(),
+		refreshSessionSerializer: &authSerializers.RefreshSessionSerializer{},
 	}
 }

@@ -1,4 +1,4 @@
-package authJobs
+package jobs
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 
 	authConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/auth"
-	authModels "github.com/mathandcrypto/cryptomath-go-auth/internal/auth/models"
+	"github.com/mathandcrypto/cryptomath-go-auth/internal/auth/models"
 )
 
 type ClearExpiredSessions struct {
@@ -21,7 +21,7 @@ type ClearExpiredSessions struct {
 }
 
 func (j *ClearExpiredSessions) Run() {
-	tx := j.db.WithContext(j.ctx).Where("created_at < ?", j.authCfg.RefreshSessionExpirationDate()).Delete(&authModels.RefreshSession{})
+	tx := j.db.WithContext(j.ctx).Where("created_at < ?", j.authCfg.RefreshSessionExpirationDate()).Delete(&models.RefreshSession{})
 	if tx.Error != nil {
 		j.l.Error(fmt.Sprintf("failed to clear expired refresh sessions: %v", tx.Error))
 		return

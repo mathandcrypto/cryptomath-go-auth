@@ -12,8 +12,8 @@ import (
 	"gorm.io/gorm"
 
 	authConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/auth"
-	authControllers "github.com/mathandcrypto/cryptomath-go-auth/internal/auth/controllers"
-	authJobs "github.com/mathandcrypto/cryptomath-go-auth/internal/auth/jobs"
+	"github.com/mathandcrypto/cryptomath-go-auth/internal/auth/controllers"
+	"github.com/mathandcrypto/cryptomath-go-auth/internal/auth/jobs"
 )
 
 func Init(ctx context.Context, cr *cron.Cron, grpcServer *grpc.Server, rdb *redis.Client, db *gorm.DB, l *logrus.Logger) error {
@@ -22,13 +22,13 @@ func Init(ctx context.Context, cr *cron.Cron, grpcServer *grpc.Server, rdb *redi
 		return fmt.Errorf("failed to load auth config: %w", err)
 	}
 
-	clearExpiredSessionsJobId, err := authJobs.NewClearExpiredSessionsJob(ctx, cr, authCfg, db, l)
+	clearExpiredSessionsJobId, err := jobs.NewClearExpiredSessionsJob(ctx, cr, authCfg, db, l)
 	if err != nil {
 		return fmt.Errorf("failed to init clear expired sessions job: %w", err)
 	}
 	l.Info(fmt.Sprintf("added clear expired sessions job (id: %d)", clearExpiredSessionsJobId))
 
-	authController := authControllers.NewAuthController(rdb, db, authCfg)
+	authController := controllers.NewAuthController(rdb, db, authCfg)
 
 	pbAuth.RegisterAuthServiceServer(grpcServer, authController)
 

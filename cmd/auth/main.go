@@ -31,7 +31,6 @@ func setupLogger(ctx context.Context) *logrus.Logger {
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	l := setupLogger(ctx)
 

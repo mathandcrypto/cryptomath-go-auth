@@ -1,4 +1,4 @@
-package authServices
+package services
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 
 	authConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/auth"
-	authModels "github.com/mathandcrypto/cryptomath-go-auth/internal/auth/models"
+	"github.com/mathandcrypto/cryptomath-go-auth/internal/auth/models"
 )
 
 type AuthService struct {
@@ -41,19 +41,19 @@ func (s *AuthService) CreateRefreshSession(ctx context.Context,
 
 	var refreshSessionsCount int64
 	tx := s.db.WithContext(ctx).
-		Model(&authModels.RefreshSession{}).Where(&authModels.RefreshSession{UserId: userId}).Count(&refreshSessionsCount)
+		Model(&models.RefreshSession{}).Where(&models.RefreshSession{UserId: userId}).Count(&refreshSessionsCount)
 	if tx.Error != nil {
 		return nil, fmt.Errorf("failed to count user (%d) refresh sessions: %w", userId, tx.Error)
 	}
 
 	if refreshSessionsCount > s.authCfg.MaxRefreshSessions {
-		tx = s.db.WithContext(ctx).Where(&authModels.RefreshSession{UserId: userId}).Delete(&authModels.RefreshSession{})
+		tx = s.db.WithContext(ctx).Where(&models.RefreshSession{UserId: userId}).Delete(&models.RefreshSession{})
 		if tx.Error != nil {
 			return nil, fmt.Errorf("failed to delete user (%d) old refresh sessions: %w", userId, tx.Error)
 		}
 	}
 
-	refreshSession := &authModels.RefreshSession{
+	refreshSession := &models.RefreshSession{
 		RefreshSecret: string(refreshSecret),
 		UserId:        userId,
 		IP:            ip,
@@ -79,9 +79,9 @@ func (s *AuthService) ValidateAccessSession(ctx context.Context, userId int32, a
 	return accessSecret == redisAccessSecret, nil
 }
 
-func (s *AuthService) FindRefreshSession(ctx context.Context, userId int32, refreshSecret string) (*authModels.RefreshSession, error) {
-	var result authModels.RefreshSession
-	tx := s.db.WithContext(ctx).Take(&result).Where(&authModels.RefreshSession{
+func (s *AuthService) FindRefreshSession(ctx context.Context, userId int32, refreshSecret string) (*models.RefreshSession, error) {
+	var result models.RefreshSession
+	tx := s.db.WithContext(ctx).Take(&result).Where(&models.RefreshSession{
 		UserId:        userId,
 		RefreshSecret: refreshSecret,
 	})
@@ -96,7 +96,7 @@ func (s *AuthService) FindRefreshSession(ctx context.Context, userId int32, refr
 	return &result, nil
 }
 
-func (s *AuthService) CheckRefreshSessionExpiration(refreshSession *authModels.RefreshSession) bool {
+func (s *AuthService) CheckRefreshSessionExpiration(refreshSession *models.RefreshSession) bool {
 	return refreshSession.CreatedAt.Before(s.authCfg.RefreshSessionExpirationDate())
 }
 
@@ -109,7 +109,7 @@ func (s *AuthService) DeleteAccessSession(ctx context.Context, userId int32) ([]
 	return []byte(val), nil
 }
 
-func (s *AuthService) DeleteRefreshSession(ctx context.Context, userId int32, refreshSecret string) (*authModels.RefreshSession, error) {
+func (s *AuthService) DeleteRefreshSession(ctx context.Context, userId int32, refreshSecret string) (*models.RefreshSession, error) {
 	refreshSession, err := s.FindRefreshSession(ctx, userId, refreshSecret)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find user (%d) refresh session to deletion: %w", userId, err)
@@ -129,7 +129,7 @@ func (s *AuthService) DeleteAllUserSessions(ctx context.Context, userId int32) e
 		return err
 	}
 
-	tx := s.db.WithContext(ctx).Delete(&authModels.RefreshSession{
+	tx := s.db.WithContext(ctx).Delete(&models.RefreshSession{
 		UserId: userId,
 	})
 	if tx.Error != nil {

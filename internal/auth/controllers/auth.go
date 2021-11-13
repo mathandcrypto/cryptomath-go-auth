@@ -1,4 +1,4 @@
-package authControllers
+package controllers
 
 import (
 	"context"
@@ -12,14 +12,14 @@ import (
 	"gorm.io/gorm"
 
 	authConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/auth"
-	authSerializers "github.com/mathandcrypto/cryptomath-go-auth/internal/auth/serializers"
-	authServices "github.com/mathandcrypto/cryptomath-go-auth/internal/auth/services"
+	"github.com/mathandcrypto/cryptomath-go-auth/internal/auth/serializers"
+	"github.com/mathandcrypto/cryptomath-go-auth/internal/auth/services"
 )
 
 type AuthController struct {
 	pbAuth.AuthServiceServer
-	authService              *authServices.AuthService
-	refreshSessionSerializer *authSerializers.RefreshSessionSerializer
+	authService              *services.AuthService
+	refreshSessionSerializer *serializers.RefreshSessionSerializer
 }
 
 func (s *AuthController) CreateAccessSession(ctx context.Context,
@@ -117,7 +117,7 @@ func (s *AuthController) DeleteAllUserSessions(ctx context.Context, req *pbAuth.
 
 func NewAuthController(rdb *redis.Client, db *gorm.DB, authCfg *authConfig.Config) *AuthController {
 	return &AuthController{
-		authService:              authServices.NewAuthService(rdb, db, authCfg),
-		refreshSessionSerializer: &authSerializers.RefreshSessionSerializer{},
+		authService:              services.NewAuthService(rdb, db, authCfg),
+		refreshSessionSerializer: &serializers.RefreshSessionSerializer{},
 	}
 }

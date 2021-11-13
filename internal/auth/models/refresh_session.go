@@ -1,4 +1,4 @@
-package authModels
+package models
 
 import "time"
 

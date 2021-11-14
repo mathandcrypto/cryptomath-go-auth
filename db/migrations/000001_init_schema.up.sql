@@ -1,4 +1,4 @@
-CREATE TABLE "refresh_sessions" (
+CREATE TABLE IF NOT EXISTS "refresh_sessions" (
     "refresh_secret" VARCHAR NOT NULL PRIMARY KEY,
     "user_id" INTEGER NOT NULL,
     "ip" VARCHAR NOT NULL,

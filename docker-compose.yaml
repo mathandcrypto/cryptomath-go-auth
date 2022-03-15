@@ -1,19 +1,50 @@
 version: '3.9'
+
 services:
+  app:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      target: image-auth
+    container_name: cryptomath-auth
+    volumes:
+      - ./configs/db/config.env:/app/configs/db/config.env:ro
+      - ./configs/app/config.env:/app/configs/app/config.env:ro
+      - ./configs/redis/config.env:/app/configs/redis/config.env:ro
+      - ./configs/auth/config.env:/app/configs/auth/config.env:ro
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - cryptomath-auth-network
   postgres:
     image: postgres:13
     container_name: cryptomath-auth-postgres
-    restart: always
-    env_file:
-      - ./configs/database/config.env
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: cryptomath-auth
+      POSTGRES_USER: cryptomath
+      POSTGRES_PASSWORD: cryptomath
     ports:
       - '5432:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - cryptomath-auth-network
   redis:
-    image: redis
+    image: redis:6.2-alpine
     container_name: cryptomath-auth-redis
+    restart: always
     ports:
       - '6379:6379'
+    command: redis-server
+    volumes:
+      - redis-data:/var/lib/redis
+
 volumes:
   pgdata:
+  redis-data:
+
+networks:
+  cryptomath-auth-network:
+    driver: bridge

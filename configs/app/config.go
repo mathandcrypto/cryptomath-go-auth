@@ -11,7 +11,7 @@ import (
 
 type Config struct {
 	Host	string	`mapstructure:"APP_HOST" validate:"required"`
-	Port	int16	`mapstructure:"APP_PORT" validate:"required"`
+	Port	int16	`mapstructure:"APP_PORT" validate:"required,gte=1024,lte=49151"`
 }
 
 func (c *Config) Address() string {
@@ -22,7 +22,7 @@ func New() (*Config, error) {
 	appViper := viper.New()
 	appValidate := validator.New()
 
-	appViper.SetDefault("APP_HOST", "localhost")
+	appViper.SetDefault("APP_HOST", "127.0.0.1")
 
 	appViper.AddConfigPath("configs/app")
 	appViper.SetConfigName("config")

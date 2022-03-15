@@ -4,8 +4,8 @@ import (
 	pbAuth "github.com/mathandcrypto/cryptomath-go-proto/auth"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/mathandcrypto/cryptomath-go-auth/internal/auth/models"
 	"github.com/mathandcrypto/cryptomath-go-auth/internal/common/interfaces"
+	"github.com/mathandcrypto/cryptomath-go-auth/internal/models"
 )
 
 type RefreshSessionSerializer struct {

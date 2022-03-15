@@ -9,76 +9,64 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/robfig/cron/v3"
-	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
 	appConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/app"
-	databaseConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/database"
+	dbConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/db"
 	redisConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/redis"
 	"github.com/mathandcrypto/cryptomath-go-auth/internal/auth"
+	"github.com/mathandcrypto/cryptomath-go-auth/internal/common/logger"
 	"github.com/mathandcrypto/cryptomath-go-auth/internal/providers"
 )
 
-func setupLogger(ctx context.Context) *logrus.Logger {
-	l := logrus.New()
-	l.SetFormatter(&logrus.JSONFormatter{})
-	l.SetOutput(os.Stdout)
-	l.WithContext(ctx)
-
-	return l
-}
-
 func main() {
+	//	Init context
 	ctx, cancel := context.WithCancel(context.Background())
-	l := setupLogger(ctx)
+
+	// Init logger
+	l := logger.CreateLogger("auth").WithContext(ctx)
 
 	//	Init database
-	dbConfig, err := databaseConfig.New()
+	dbConf, err := dbConfig.New()
 	if err != nil {
 		l.WithError(err).Fatal("failed to load database config")
 	}
 
-	db, err := providers.NewGORMProvider(ctx, l, dbConfig)
+	db, err := providers.NewDBProvider(dbConf)
 	if err != nil {
 		l.WithError(err).Fatal("failed init database provider")
 	}
 
 	//	Init redis
-	redisCfg, err := redisConfig.New()
+	redisConf, err := redisConfig.New()
 	if err != nil {
 		l.WithError(err).Fatal("failed to load redis config")
 	}
 
-	rdb, err := providers.NewRedisProvider(ctx, redisCfg)
+	rdb, err := providers.NewRedisProvider(ctx, redisConf)
 	if err != nil {
 		l.WithError(err).Fatal("failed to init redis provider")
 	}
 
-	//	Init cron jobs
-	crLog := l.WithField("module", "cron")
-	cr := cron.New(cron.WithLogger(cron.VerbosePrintfLogger(crLog)))
-
 	//	Init app
-	appCfg, err := appConfig.New()
+	appConf, err := appConfig.New()
 	if err != nil {
-		l.WithError(err).Fatal("failed to load app config")
+		l.WithError(err).Fatal("failed to load application config")
 	}
 
-	lis, err := net.Listen("tcp", appCfg.Address())
+	lis, err := net.Listen("tcp", appConf.Address())
 	if err != nil {
-		l.WithError(err).Fatal("failed to listen")
+		l.WithError(err).Fatal("failed to listen local network address")
 	}
 
 	var grpcOptions []grpc.ServerOption
 	grpcServer := grpc.NewServer(grpcOptions...)
 
-	if err = auth.Init(ctx, cr, grpcServer, rdb, db, l); err != nil {
+	if err = auth.Init(grpcServer, db, rdb); err != nil {
 		l.WithError(err).Fatal("failed to init auth module")
 	}
 
-	cr.Start()
-
+	//	Subscribe to system signals
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan,
 		os.Interrupt,
@@ -97,15 +85,23 @@ func main() {
 
 		l.WithField("signal", stop).Info("waiting for all processes to stop")
 		cancel()
+
+		if err = db.Close(); err != nil {
+			l.WithError(err).Fatal("failed to close database connection")
+		}
+
 		grpcServer.GracefulStop()
-		rdb.FlushDB(ctx)
-		cr.Stop()
+
+		if err = lis.Close(); err != nil {
+			l.WithError(err).Fatal("failed to close server connections")
+		}
 	}()
 
-	l.Info(fmt.Sprintf("starting grpc server on: %s", appCfg.Address()))
 	if err = grpcServer.Serve(lis); err != nil {
 		l.WithError(err).Fatal("failed to serve grpc server")
 	}
+
+	l.Info(fmt.Sprintf("grpc server started on: %s", appConf.Address()))
 
 	wg.Wait()
 	l.Info("service stopped")

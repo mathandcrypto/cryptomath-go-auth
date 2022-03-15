@@ -12,11 +12,11 @@ import (
 func NewRedisProvider(ctx context.Context, config *redisConfig.Config) (*redis.Client, error) {
 	rdb := redis.NewClient(&redis.Options{
 		Addr: config.Address(),
-		DB:   0,
+		DB:   config.Database,
 	})
 
 	if err := rdb.Ping(ctx).Err(); err != nil {
-		return nil, fmt.Errorf("failed to connect redis: %w", err)
+		return nil, fmt.Errorf("failed to ping redis connection: %w", err)
 	}
 
 	return rdb, nil

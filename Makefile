@@ -1,38 +1,39 @@
 BUILD_DIR=./out/bin
 BINARY_NAME=cryptomath-auth
-DOCKER_COMPOSE_FILE=docker-compose.yaml
+CLEAR_BINARY_NAME=${BINARY_NAME}-clear
+MIGRATE_BINARY_NAME=${BINARY_NAME}-migrate
 
 #	Go section
-.PHONY: build
-build:
+.PHON: build-app
+build-app:
 	mkdir -p ${BUILD_DIR}
 	cd ${BUILD_DIR}
-	go build -mod vendor -o ${BUILD_DIR}/${BINARY_NAME} ./cmd/auth/main.go
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 GO111MODULE=on go build -v -mod vendor -o ${BUILD_DIR}/${OUT_NAME} ./cmd/${APP_NAME}/main.go
 
-.PHONY: run
-run:
-	cd ${BUILD_DIR} && ./${BINARY_NAME}
+.PHONY: build-auth
+build-auth:
+	OUT_NAME=${BINARY_NAME} APP_NAME=auth $(MAKE) build-app
 
-.PHONY: copy-configs
-copy-configs:
-	mkdir -p ${BUILD_DIR}
-	for path in `ls -d ./configs/* | sed 's:^\./::'` ; do \
-  		mkdir -p ${BUILD_DIR}/$$path; \
-		cp ./$$path/config.env ${BUILD_DIR}/$$path/config.env; \
-	done
+.PHONY: build-clear
+build-clear:
+	OUT_NAME=${CLEAR_BINARY_NAME} APP_NAME=clear $(MAKE) build-app
+
+.PHONY: build-migrate
+build-migrate:
+	OUT_NAME=${MIGRATE_BINARY_NAME} APP_NAME=migrate $(MAKE) build-app
 
 .PHONY: clean
 clean:
 	go clean
-	rm -rf ./out
+	rm -rf ${BUILD_DIR}
 
 .PHONY: vendor
 vendor:
 	go mod vendor
 
-.PHONY: deps
+.PHONY: install-deps
 deps:
-	go get ./...
+	go mod download
 
 .PHONY: vet
 vet:
@@ -46,42 +47,15 @@ lint:
 lint-fix:
 	golangci-lint run --fix
 
-#	Docker section
-.PHONY:	docker-compose-start-service
-docker-compose-start-service:
-	docker-compose -f ${DOCKER_COMPOSE_FILE} -p ${BINARY_NAME} up -d ${SERVICE_NAME}
-
-.PHONY:docker-compose-stop-service
-docker-compose-stop-service:
-	docker-compose -f ${DOCKER_COMPOSE_FILE} stop ${SERVICE_NAME}
-	docker-compose -f ${DOCKER_COMPOSE_FILE} rm --force ${SERVICE_NAME}
-
 #	Database section
-.PHONY:start-database
-start-database:
-	SERVICE_NAME=postgres $(MAKE) docker-compose-start-service
-
-.PHONY:stop-database
-stop-database:
-	SERVICE_NAME=postgres $(MAKE) docker-compose-stop-service
-
-.PHONY:init-database
-init-database:
-	./scripts/database/init.sh
-
 .PHONY: migrate-up
 migrate-up:
-	./scripts/database/migrate-up.sh
+	migrate -path ./migrations -database "$(DATABASE_URL)" -verbose up
 
 .PHONY: migrate-down
 migrate-down:
-	./scripts/database/migrate-down.sh
+	migrate -path ./migrations -database "$(DATABASE_URL)" -verbose down
 
-#	Redis section
-.PHONY:start-redis
-start-redis:
-	SERVICE_NAME=redis $(MAKE) docker-compose-start-service
-
-.PHONY:stop-redis
-stop-redis:
-	SERVICE_NAME=redis $(MAKE) docker-compose-stop-service
+.PHONE: boil-generate
+boil-generate:
+	sqlboiler psql

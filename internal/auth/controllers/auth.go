@@ -2,14 +2,13 @@ package controllers
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/go-redis/redis/v8"
 	pbAuth "github.com/mathandcrypto/cryptomath-go-proto/auth"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/emptypb"
-	"gorm.io/gorm"
 
 	authConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/auth"
 	"github.com/mathandcrypto/cryptomath-go-auth/internal/auth/serializers"
@@ -17,8 +16,8 @@ import (
 )
 
 type AuthController struct {
-	pbAuth.AuthServiceServer
-	authService              *services.AuthService
+	pbAuth.UnimplementedAuthServiceServer
+	authService	*services.AuthService
 	refreshSessionSerializer *serializers.RefreshSessionSerializer
 }
 
@@ -106,18 +105,21 @@ func (s *AuthController) DeleteRefreshSession(ctx context.Context,
 	}, nil
 }
 
-func (s *AuthController) DeleteAllUserSessions(ctx context.Context, req *pbAuth.DeleteAllUserSessionsRequest) (*emptypb.Empty, error) {
-	err := s.authService.DeleteAllUserSessions(ctx, req.UserId)
+func (s *AuthController) DeleteAllUserSessions(ctx context.Context,
+	req *pbAuth.DeleteAllUserSessionsRequest) (*pbAuth.DeleteAllUserSessionsResponse, error) {
+	deletedRefreshSessionsCount, err := s.authService.DeleteAllUserSessions(ctx, req.UserId)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, fmt.Sprintf("failed to delete all user sessions: %v", err))
 	}
 
-	return &emptypb.Empty{}, nil
+	return &pbAuth.DeleteAllUserSessionsResponse{
+		DeletedRefreshSessionsCount: deletedRefreshSessionsCount,
+	}, nil
 }
 
-func NewAuthController(rdb *redis.Client, db *gorm.DB, authCfg *authConfig.Config) *AuthController {
+func NewAuthController(authConf *authConfig.Config, db *sql.DB, rdb *redis.Client) *AuthController {
 	return &AuthController{
-		authService:              services.NewAuthService(rdb, db, authCfg),
+		authService: services.NewAuthService(authConf, db, rdb),
 		refreshSessionSerializer: &serializers.RefreshSessionSerializer{},
 	}
 }

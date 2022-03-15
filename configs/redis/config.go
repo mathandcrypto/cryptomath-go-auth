@@ -11,7 +11,8 @@ import (
 
 type Config struct {
 	Host	string	`mapstructure:"REDIS_HOST" validate:"required"`
-	Port	int16	`mapstructure:"REDIS_PORT" validate:"required"`
+	Port	int16	`mapstructure:"REDIS_PORT" validate:"required,gte=1024,lte=49151"`
+	Database	int	`mapstructure:"REDIS_DATABASE" validate:"required,gte=0,lte=15"`
 }
 
 func (c *Config) Address() string {
@@ -22,8 +23,9 @@ func New() (*Config, error) {
 	redisViper := viper.New()
 	redisValidate := validator.New()
 
-	redisViper.SetDefault("REDIS_HOST", "localhost")
+	redisViper.SetDefault("REDIS_HOST", "127.0.0.1")
 	redisViper.SetDefault("REDIS_PORT", 6379)
+	redisViper.SetDefault("REDIS_DATABASE", 0)
 
 	redisViper.AddConfigPath("configs/redis")
 	redisViper.SetConfigName("config")

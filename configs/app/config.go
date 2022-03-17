@@ -2,13 +2,16 @@ package appConfig
 
 import (
 	"fmt"
-	configErrors "github.com/mathandcrypto/cryptomath-go-auth/internal/common/errors/config"
+
+	"github.com/go-playground/validator/v10"
 	"github.com/spf13/viper"
+
+	configErrors "github.com/mathandcrypto/cryptomath-go-auth/internal/common/errors/config"
 )
 
 type Config struct {
-	Host	string
-	Port	int16
+	Host	string	`mapstructure:"APP_HOST" validate:"required"`
+	Port	int16	`mapstructure:"APP_PORT" validate:"required,gte=1024,lte=49151"`
 }
 
 func (c *Config) Address() string {
@@ -17,6 +20,9 @@ func (c *Config) Address() string {
 
 func New() (*Config, error) {
 	appViper := viper.New()
+	appValidate := validator.New()
+
+	appViper.SetDefault("APP_HOST", "127.0.0.1")
 
 	appViper.AddConfigPath("configs/app")
 	appViper.SetConfigName("config")
@@ -27,20 +33,14 @@ func New() (*Config, error) {
 		return nil, &configErrors.ReadConfigError{ConfigName: "app", ViperErr: err}
 	}
 
-	//	Load app host
-	appHost := appViper.GetString("APP_HOST")
-	if appHost == "" {
-		appHost = "localhost"
+	var appConfig Config
+	if err := appViper.Unmarshal(&appConfig); err != nil {
+		return nil, &configErrors.UnmarshalError{ConfigName: "app", ViperErr: err}
 	}
 
-	//	Load app port
-	appPort := appViper.GetInt("APP_PORT")
-	if appPort == 0 {
-		return nil, &configErrors.EmptyKeyError{Key: "APP_PORT"}
+	if err := appValidate.Struct(appConfig); err != nil {
+		return nil, &configErrors.ValidationError{ConfigName: "app", ValidateErr: err}
 	}
 
-	return &Config{
-		Host: appHost,
-		Port: int16(appPort),
-	}, nil
+	return &appConfig, nil
 }

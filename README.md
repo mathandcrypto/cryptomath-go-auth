@@ -1,54 +1,78 @@
 # cryptomath-go-auth
-**Auth** Go microservice for managing authentication sessions.
+**Auth** microservice for managing authentication sessions.
+
+## Microservice structure
+The microservice has the following applications:
+- **Auth** - the main application of the microservice that start up a [gRPC](https://grpc.io/) server.
+- **Clear** - application for clearing expired refresh sessions from the database. It can usually be used in cron jobs.
+- **Migrate** - application that apply all up database migrations.
 
 ## Install dependencies
 
 ```bash
-$ make deps
+$ make install-deps
 ```
 
-## Build
+## Build applications
+Compiled application binaries saved to the local `/out/bin` folder.
+Before build, it is necessary to do [vendoring](https://go.dev/ref/mod#vendoring):
+
 ```bash
 $ make vendor
-$ make build
+````
+
+### Build `auth` application
+```bash
+$ make build-auth
+```
+
+### Build `clear` application
+```bash
+$ make build-clear
+```
+
+### Build `migrate` application
+```bash
+$ make build-migrate
 ```
 
 ## Database migrations
+Replace `{DATABASE_URL}` to PostgreSQL database url, should look like: `postgres://username:password@localhost:5432/dbname`.
+
 ### Apply all migrations
 
 ```bash
-$ make migrate-up
+$ DATABASE_URL="{DATABASE_URL}" make migrate-up
 ```
 
 ### Down all migrations
 ```bash
-$ make migrate-down
+$ DATABASE_URL="{DATABASE_URL}" make migrate-down
 ```
 
-## Running the app
-
+## Database model generation
+This service uses the [SQLBoiler](https://github.com/volatiletech/sqlboiler) package to generate models based on a database schema.
+To generate, you must create a SQLBoiler configuration file `sqlboiler.toml` at the root of the project.
+You can see an example of this configuration in the `sqlboiler.toml.example` file at the root of the project.
+To start generating models, run the command
 ```bash
-$ make run
+$ make boil-generate
 ```
 
-## Local launch of docker containers application services
-### PostgreSQL
-```bash
-# start service
-$ make start-database
+## Project configuration files
 
-# init database
-$ make init-database
+### Application configuration
+These are basically gRPC server settings.
+You can see an example of this configuration in the `/configs/app/config.env.sample` file.
 
-# stop service
-$ make stop-database
-```
+### Auth configuration
+These are authorization parameters settings.
+You can see an example of this configuration in the `/configs/auth/config.env.sample` file.
 
-### Redis
-```bash
-# start service
-$ make start-redis
+### Database configuration
+These are the settings for connecting to the PostgreSQL database, which stores refresh session records.
+You can see an example of this configuration in the `/configs/db/config.env.sample` file.
 
-# stop service
-$ make stop-redis
-```
+### Redis configuration
+These are the settings for connecting to the Redis database, where access session data stored.
+You can see an example of this configuration in the `/configs/redis/config.env.sample` file.

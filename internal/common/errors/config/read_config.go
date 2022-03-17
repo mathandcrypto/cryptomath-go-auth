@@ -3,8 +3,8 @@ package configErrors
 import "fmt"
 
 type ReadConfigError struct {
-	ConfigName	string
-	ViperErr	error
+	ConfigName string
+	ViperErr   error
 }
 
 func (e *ReadConfigError) Error() string {

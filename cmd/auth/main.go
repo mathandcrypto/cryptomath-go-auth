@@ -3,75 +3,70 @@ package main
 import (
 	"context"
 	"fmt"
-	appConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/app"
-	databaseConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/database"
-	redisConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/redis"
-	"github.com/mathandcrypto/cryptomath-go-auth/internal/auth"
-	"github.com/mathandcrypto/cryptomath-go-auth/internal/providers"
-	"github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
 	"net"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
+
+	"google.golang.org/grpc"
+
+	appConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/app"
+	dbConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/db"
+	redisConfig "github.com/mathandcrypto/cryptomath-go-auth/configs/redis"
+	"github.com/mathandcrypto/cryptomath-go-auth/internal/auth"
+	"github.com/mathandcrypto/cryptomath-go-auth/internal/common/logger"
+	"github.com/mathandcrypto/cryptomath-go-auth/internal/providers"
 )
 
-func setupLogger(ctx context.Context) *logrus.Logger {
-	log := logrus.New()
-	log.SetFormatter(&logrus.JSONFormatter{})
-	log.SetOutput(os.Stdout)
-	log.WithContext(ctx)
-
-	return log
-}
-
 func main() {
+	//	Init context
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
-	log := setupLogger(ctx)
+	// Init logger
+	l := logger.CreateLogger("auth").WithContext(ctx)
 
 	//	Init database
-	dbConfig, err := databaseConfig.New()
+	dbConf, err := dbConfig.New()
 	if err != nil {
-		log.WithError(err).Fatal("failed to load database config")
+		l.WithError(err).Fatal("failed to load database config")
 	}
 
-	db, err := providers.NewGORMProvider(ctx, dbConfig)
+	db, err := providers.NewDBProvider(dbConf)
 	if err != nil {
-		log.WithError(err).Fatal("failed init database provider")
+		l.WithError(err).Fatal("failed init database provider")
 	}
 
 	//	Init redis
-	redisCfg, err := redisConfig.New()
+	redisConf, err := redisConfig.New()
 	if err != nil {
-		log.WithError(err).Fatal("failed to load redis config")
+		l.WithError(err).Fatal("failed to load redis config")
 	}
 
-	rdb, err := providers.NewRedisProvider(ctx, redisCfg)
+	rdb, err := providers.NewRedisProvider(ctx, redisConf)
 	if err != nil {
-		log.WithError(err).Fatal("failed to init redis provider")
+		l.WithError(err).Fatal("failed to init redis provider")
 	}
 
 	//	Init app
-	appCfg, err := appConfig.New()
+	appConf, err := appConfig.New()
 	if err != nil {
-		log.WithError(err).Fatal("failed to load app config")
+		l.WithError(err).Fatal("failed to load application config")
 	}
 
-	lis, err := net.Listen("tcp", appCfg.Address())
+	lis, err := net.Listen("tcp", appConf.Address())
 	if err != nil {
-		log.WithError(err).Fatal("failed to listen")
+		l.WithError(err).Fatal("failed to listen local network address")
 	}
 
 	var grpcOptions []grpc.ServerOption
 	grpcServer := grpc.NewServer(grpcOptions...)
 
-	if err = auth.Init(grpcServer, rdb, db); err != nil {
-		log.WithError(err).Fatal("failed to init auth module")
+	if err = auth.Init(grpcServer, db, rdb); err != nil {
+		l.WithError(err).Fatal("failed to init auth module")
 	}
 
+	//	Subscribe to system signals
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan,
 		os.Interrupt,
@@ -88,17 +83,26 @@ func main() {
 
 		stop := <-signalChan
 
-		log.WithField("signal", stop).Info("waiting for all processes to stop")
+		l.WithField("signal", stop).Info("waiting for all processes to stop")
 		cancel()
+
+		if err = db.Close(); err != nil {
+			l.WithError(err).Fatal("failed to close database connection")
+		}
+
 		grpcServer.GracefulStop()
-		rdb.FlushDB(ctx)
+
+		if err = lis.Close(); err != nil {
+			l.WithError(err).Fatal("failed to close server connections")
+		}
 	}()
 
-	log.Info(fmt.Sprintf("starting grpc server on: %s", appCfg.Address()))
 	if err = grpcServer.Serve(lis); err != nil {
-		log.WithError(err).Fatal("failed to serve grpc server")
+		l.WithError(err).Fatal("failed to serve grpc server")
 	}
 
+	l.Info(fmt.Sprintf("grpc server started on: %s", appConf.Address()))
+
 	wg.Wait()
-	log.Info("service stopped")
+	l.Info("service stopped")
 }

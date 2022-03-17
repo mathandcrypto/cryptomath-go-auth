@@ -22,5 +22,8 @@ out/
 # Dependency directories (remove the comment below to include it)
 vendor/
 
-# Local
+# Local configs
 configs/*/*.env
+
+# Development configs
+sqlboiler.toml

@@ -28,7 +28,7 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
     networks:
       - cryptomath-auth-network
   redis:
@@ -42,7 +42,7 @@ services:
       - redis-data:/var/lib/redis
 
 volumes:
-  pgdata:
+  postgres-data:
   redis-data:
 
 networks:

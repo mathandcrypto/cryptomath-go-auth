@@ -91,17 +91,13 @@ func main() {
 		}
 
 		grpcServer.GracefulStop()
-
-		if err = lis.Close(); err != nil {
-			l.WithError(err).Fatal("failed to close server connections")
-		}
 	}()
+
+	l.Info(fmt.Sprintf("starting grpc server on: %s", appConf.Address()))
 
 	if err = grpcServer.Serve(lis); err != nil {
 		l.WithError(err).Fatal("failed to serve grpc server")
 	}
-
-	l.Info(fmt.Sprintf("grpc server started on: %s", appConf.Address()))
 
 	wg.Wait()
 	l.Info("service stopped")

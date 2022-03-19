@@ -702,6 +702,8 @@ github.com/markbates/safe v1.0.1/go.mod h1:nAqgmRi7cY2nqMc92/bSEeQA+R4OheNU2T1kN
 github.com/marstr/guid v1.1.0/go.mod h1:74gB1z2wpxxInTG6yaqA7KrtM0NZ+RbrcqDvYHefzho=
 github.com/mathandcrypto/cryptomath-go-proto v0.0.0-20211109142007-c30ba28c946e h1:SeSaiGx8SOlsfm9a2FsnZOpYNi4+wPwJYheM5/QTldE=
 github.com/mathandcrypto/cryptomath-go-proto v0.0.0-20211109142007-c30ba28c946e/go.mod h1:CsoRHpO8sRwrQy/3dsL1yWYL46yHdck2JIybOVGXx6g=
+github.com/mathandcrypto/cryptomath-go-proto v0.0.0-20220315160316-ef1b90770d6b h1:Lm/towbDbSN+xTS9pAsCjLEXqAN2Msy3kIbnmyrz1pc=
+github.com/mathandcrypto/cryptomath-go-proto v0.0.0-20220315160316-ef1b90770d6b/go.mod h1:CsoRHpO8sRwrQy/3dsL1yWYL46yHdck2JIybOVGXx6g=
 github.com/mattn/go-colorable v0.0.9/go.mod h1:9vuHe8Xs5qXnSaW/c/ABM9alt+Vo+STaOChaDxuIBZU=
 github.com/mattn/go-colorable v0.1.1/go.mod h1:FuOcm+DKB9mbwrcAfNl7/TZVBZ6rcnceauSikq3lYCQ=
 github.com/mattn/go-colorable v0.1.2/go.mod h1:U0ppj6V5qS13XJ6of8GYAs25YV2eR4EVcfRqFIhoBtE=

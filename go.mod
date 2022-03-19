@@ -8,7 +8,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/golang-migrate/migrate/v4 v4.15.1
 	github.com/google/uuid v1.3.0
-	github.com/mathandcrypto/cryptomath-go-proto v0.0.0-20211109142007-c30ba28c946e
+	github.com/mathandcrypto/cryptomath-go-proto v0.0.0-20220315160316-ef1b90770d6b
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/viper v1.9.0
 	github.com/volatiletech/sqlboiler/v4 v4.8.6

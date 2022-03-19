@@ -4,7 +4,7 @@ CLEAR_BINARY_NAME=${BINARY_NAME}-clear
 MIGRATE_BINARY_NAME=${BINARY_NAME}-migrate
 
 #	Go section
-.PHON: build-app
+.PHONY: build-app
 build-app:
 	mkdir -p ${BUILD_DIR}
 	cd ${BUILD_DIR}

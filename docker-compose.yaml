@@ -7,6 +7,8 @@ services:
       dockerfile: ./Dockerfile
       target: image-auth
     container_name: cryptomath-auth
+    ports:
+      - '5002:5002'
     volumes:
       - ./configs/db/config.env:/app/configs/db/config.env:ro
       - ./configs/app/config.env:/app/configs/app/config.env:ro
@@ -40,6 +42,8 @@ services:
     command: redis-server
     volumes:
       - redis-data:/var/lib/redis
+    networks:
+      - cryptomath-auth-network
 
 volumes:
   postgres-data:

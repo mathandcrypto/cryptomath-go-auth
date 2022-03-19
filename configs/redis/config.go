@@ -12,7 +12,7 @@ import (
 type Config struct {
 	Host	string	`mapstructure:"REDIS_HOST" validate:"required"`
 	Port	int16	`mapstructure:"REDIS_PORT" validate:"required,gte=1024,lte=49151"`
-	Database	int	`mapstructure:"REDIS_DATABASE" validate:"required,gte=0,lte=15"`
+	Database	int	`mapstructure:"REDIS_DATABASE" validate:"gte=0,lte=15"`
 }
 
 func (c *Config) Address() string {

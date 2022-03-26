@@ -1,4 +1,5 @@
 ARG IMG_GO=golang:1.17-alpine
+ARG IMG_ALPINE=alpine:3.15
 
 FROM $IMG_GO AS builder
 
@@ -15,7 +16,7 @@ COPY ./ .
 
 RUN make vendor && make build-auth && make build-clear && make build-migrate
 
-FROM $IMG_GO as image-auth
+FROM $IMG_ALPINE as image-auth
 
 WORKDIR /app
 
@@ -29,7 +30,7 @@ EXPOSE 5002
 
 ENTRYPOINT ["./cryptomath-auth"]
 
-FROM $IMG_GO as image-auth-clear
+FROM $IMG_ALPINE as image-auth-clear
 
 WORKDIR /app
 
@@ -41,7 +42,7 @@ RUN chmod +x /app/cryptomath-auth-clear
 
 ENTRYPOINT ["./cryptomath-auth-clear"]
 
-FROM $IMG_GO as image-auth-migrate
+FROM $IMG_ALPINE as image-auth-migrate
 
 WORKDIR /app
 
